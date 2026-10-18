@@ -111,7 +111,7 @@ app.get("*", (req, res) => {
 });
 
 // --- HTTP サーバー起動 ---
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Node.js Server running on port ${PORT}`);
 });
