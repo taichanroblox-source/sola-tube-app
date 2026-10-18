@@ -102,12 +102,7 @@ router.get("/", async (req, res) => {
       result = await youtube.getSearchContinuation(pageToken);
     } else {
       result = await youtube.search(keyword, {
-        type: "video,channel",
-        limit: 20,
-        params: {
-          gl: "JP",
-          hl: "ja",
-        },
+        type: "video",
       });
     }
 
