@@ -71,7 +71,7 @@ export default {
     },
   },
   created() {
-    document.title = "しあチューブ - ホーム";
+    document.title = "SOLA TUBE - ホーム";
     this.fetchTrendData();
   },
   methods: {
