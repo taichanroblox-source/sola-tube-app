@@ -129,7 +129,7 @@ router.get("/", async (req, res) => {
               thumbnails: await generateThumbnails(videoId),
               viewCount: normalizeViewCount(item.view_count?.text || ""),
             };
-          } else if (item.type = "Channel") {
+          } else if (item.type === "Channel") {
             return {
               type: "channel",
               id: item.channel_id || item.id,
