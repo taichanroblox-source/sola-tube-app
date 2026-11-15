@@ -77,13 +77,15 @@ app.use("/api", fallbackRoute);
 app.get("/api/trend", async (req, res) => {
   try {
     const response = await fetch(
-      "https://raw.githubusercontent.com/siawaseok3/wakame/refs/heads/master/trend.json"
+      "https://raw.githubusercontent.com/ajgpw/youtubedata/refs/heads/main/trend-base64.json",
+      { signal: AbortSignal.timeout(10000) }
     );
-    if (!response.ok) throw new Error("GitHubからの取得に失敗");
+    if (!response.ok) throw new Error("動画データの取得に失敗しました");
     const data = await response.json();
+    res.set("Cache-Control", "public, max-age=60");
     res.json(data);
   } catch (error) {
-    res.status(500).json({ error: error.message || "トレンドデータ取得失敗" });
+    res.status(503).json({ error: "動画データを取得できませんでした。後ほど再試行してください。" });
   }
 });
 
