@@ -4,15 +4,16 @@ import { Innertube } from "youtubei.js";
 const router = express.Router();
 
 let youtube;
-
-(async () => {
-  youtube = await Innertube.create({
+const youtubeReady = Innertube.create({
     lang: "ja",
     location: "JP",
-    retrieve_player: true,
+    retrieve_player: false,
     debug: false,
+  }).then((instance) => {
+    youtube = instance;
+  }).catch((err) => {
+    console.error("コメントAPI初期化失敗:", err);
   });
-})();
 
 router.get("/:videoId", async (req, res) => {
   const { videoId } = req.params;
@@ -22,6 +23,8 @@ router.get("/:videoId", async (req, res) => {
   }
 
   try {
+    await youtubeReady;
+    if (!youtube) return res.status(503).json({ error: "コメントAPIを初期化できませんでした" });
     const commentSection = await youtube.getComments(videoId);
     const commentThreads = commentSection.contents || [];
 
