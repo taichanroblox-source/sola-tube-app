@@ -13,8 +13,9 @@
     </nav>
 
     <main>
-      <div v-if="loading" class="loading">読み込み中...</div>
-      <div v-if="error" class="error">{{ error }}</div>
+      <div v-if="loading" class="loading" role="status">動画を読み込み中...（最大12秒）</div>
+      <div v-if="error" class="error" role="alert">{{ error }} <button type="button" @click="fetchTrendData">再読み込み</button></div>
+      <div v-if="!loading && !error && !selectedVideos.length" class="loading">このカテゴリには表示できる動画がありません。</div>
 
       <VideoList
         v-if="!loading && !error && selectedVideos.length"
@@ -23,15 +24,8 @@
       />
     </main>
     <footer class="footer">
-      <p style="margin-block-start: 1px; color: var(--text-primary);">しあtube</p>
-      <p style="color: var(--text-primary);">
-        <a href="https://github.com/siawaseoktest/youtube" target="_blank" rel="noopener noreferrer">GitHub</a> |
-        <a href="https://www.google.com/url?q=https%3A%2F%2Fline.me%2Fti%2Fg2%2FvCj1dWEoRZTALbC0n1w53si3-KJ8OTXnfjV6aw%3Futm_source%3Dinvitation%26utm_medium%3Dlink_copy%26utm_campaign%3Ddefault&sa=D&sntz=1&usg=AOvVaw0AaRwnxB0yifPSGZ1TbcS5" target="_blank" rel="noopener noreferrer">LINE</a>
-      </p>
-      <div class="Accesscount">
-        表示回数
-        <img src="https://count.getloli.com/@:siatube?name=%3Asiatube&theme=minecraft&padding=7&offset=0&align=top&scale=1&pixelated=1&darkmode=auto" style="width: 50%; max-width: 380px;">
-      </div>
+      <p style="margin-block-start: 1px; color: var(--text-primary);">SOLA TUBE</p>
+      <p style="color: var(--text-secondary);">SOLAの動画サービス</p>
       <div style="color: var(--text-secondary);">バージョン1.5.4</div>
     </footer>
   </div>
@@ -79,12 +73,13 @@ export default {
       this.loading = true;
       this.error = null;
       try {
-        const res = await fetch("https://raw.githubusercontent.com/ajgpw/youtubedata/refs/heads/main/trend-base64.json", {redirect: "follow",});
+        const res = await fetch("/api/trend", { signal: AbortSignal.timeout(12000), cache: "no-store" });
         if (!res.ok) throw new Error("データ取得失敗");
         const data = await res.json();
+        if (!data || typeof data !== "object") throw new Error("動画データの形式が正しくありません");
         this.trend = data;
       } catch (e) {
-        this.error = e.message;
+        this.error = e.name === "TimeoutError" || e.name === "AbortError" ? "通信がタイムアウトしました。時間をおいて再読み込みしてください。" : `動画を読み込めませんでした: ${e.message}`;
       } finally {
         this.loading = false;
       }
