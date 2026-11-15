@@ -2,12 +2,9 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
 
-if (typeof console !== 'undefined') {
-	['log', 'warn', 'error', 'info', 'debug'].forEach((m) => {
-		try {
-			console[m] = () => {};
-		} catch (e) {}
-	});
-}
-
-createApp(App).use(router).mount("#app");
+// エラーを隠さずブラウザの開発者ツールで確認できるようにする
+const app = createApp(App);
+app.config.errorHandler = (err, instance, info) => {
+  console.error("[SOLA TUBE] Vue error:", info, err);
+};
+app.use(router).mount("#app");
