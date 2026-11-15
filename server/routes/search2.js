@@ -4,7 +4,7 @@ import Youtube from "youtubei.js";
 const router = express.Router();
 
 let youtube;
-const youtubeReady = Youtube.create()
+const youtubeReady = Youtube.create({ lang: "ja", location: "JP", retrieve_player: false })
   .then(instance => {
     youtube = instance;
     console.log("✅ YouTube API initialized");
@@ -13,22 +13,11 @@ const youtubeReady = Youtube.create()
     console.error("❌ Failed to initialize YouTube API:", err);
   });
 
-// サムネイルをBase64化して返す
-async function generateThumbnails(videoId) {
-  if (!videoId) return {};
-  try {
-    const url = `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Failed to fetch thumbnail: ${res.status}`);
-    const buffer = await res.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString("base64");
-    return {
-      medium: { url: `data:image/jpeg;base64,${base64}` }
-    };
-  } catch (err) {
-    console.error("❌ Thumbnail fetch error:", err);
-    return { medium: { url: "" } };
-  }
+// サムネイルはブラウザから直接取得する。検索APIで画像を再取得すると
+// 外部通信が滞った際に検索結果全体が返らなくなるため。
+function generateThumbnails(videoId) {
+  if (!videoId || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) return {};
+  return { medium: { url: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg` } };
 }
 
 function normalizeViewCount(viewText) {
@@ -121,7 +110,7 @@ router.get("/", async (req, res) => {
               channel: item.author?.name || "不明なチャンネル",
               channelId: item.author?.id || "",
               channelIcon: item.author?.thumbnails?.[0]?.url || "",
-              thumbnails: await generateThumbnails(videoId),
+              thumbnails: generateThumbnails(videoId),
               viewCount: normalizeViewCount(item.view_count?.text || ""),
             };
           } else if (item.type === "Channel") {
